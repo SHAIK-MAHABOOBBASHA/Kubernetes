@@ -1,2 +1,775 @@
 # Kubernetes
 Kubernetes
+https://bikramat.medium.com/kubernetes-deployment-yaml-walkthrough-267cc5b5dfe2
+
+#memory details
+top
+free -mg or free -m
+df -h
+nproc
+
+
+
+Pod 
+Deployments
+Service
+Ingress
+ConfigMaps
+Secrets
+Namespaces
+Persistent Volumes
+Persistent VolumeClaims
+Stateful and More
+
+Type of Services
+ClusterIP
+NodePort
+LoadBalancer
+ExternalName
+
+
+kubectl run firstpod --generator=run-pod/v1 --image=httpd
+
+# To list all pods
+kubectl get pods all
+
+# To list nodes
+kubectl get nodes
+
+# To list replicationcontroller
+kubectl get rc
+
+# To list namespaces
+kubectl  get namespaces
+
+
+# ALL Info of pods
+kubectl get pods -o wide
+kubectl explain pods
+kubectl explain pods|less
+kubectl explain pods|more
+
+# Overall info of pod syntax same syntax other resources as well
+kubectl describe <resource> <podname>
+eg: kubectl describe pod firstpod
+
+# To delete pod
+kubectl delete -f firstpod
+(or)
+Kubectl delete <resources> <podname>
+kubectl delete pod firstpod
+
+
+
+
+kubectl 	--->	get  	  --->  pod		----->  <podname>
+	   		describe	Namespace		<namespace name>
+	   		delete		replicaset		<replicaset>
+					replicacontroller	<replicacontroller>		
+					deployment		<deployment name>
+					Configmap		<configmap name>
+
+
+
+
+
+# Attach label
+kubectl label pod firstpod env=testing
+
+# Rename label
+kubectl label --overwrite pod firstpod env=testing
+
+# Delete label
+kubectl label pod firstpod env-
+
+# To attach label for all pods
+kubectl label pod --all env=production
+
+
+# To show label
+kubectl get pods --show-labels
+
+
+# To check syntax
+kubectl apply -f  podname --check
+kubectl apply -f  podname --dry-run
+
+
+# Create pod using manifest file
+
+kubectl explain pod
+
+apiVersion: v1
+kind: Pod
+metadata: 
+ name: myfirstpod
+ labels: 
+  env: prod
+spec:
+ containers:
+  -name: create a image
+   image: coolgourav147/ngix-custom
+:wq!
+
+
+# To run yaml to create a pod
+kubectl apply -f  podname --check
+kubectl apply -f  podname --dry-run
+
+# To run yaml to create a pod
+kubectl create -f  podname --check
+kubectl create -f  podname --dry-run
+
+
+# Important 
+kubectl explain pod --recursive
+
+# Syntax output if you don't know syntax of resources 
+kubectl run firstpod --dry-run --generator=run-pod/v1 --image=httpd -o yaml
+
+
+# To edit yaml
+kubectl edit pod <podname>
+
+# Difference
+
+Kubectl apply -f first.yml --server-dry-run
+kubectl diff -f firstpod.yml
+
+# Set environment variable in a pod's container
+
+apiVersion: v1
+kind: Pod
+metadata: 
+ name: myfirstpod
+ labels: 
+  env: prod
+spec:
+ containers:
+  -name: create a image
+   image: coolgourav147/ngix-custom
+   env:
+    -name: MyName
+     value: Basha
+    -name: City
+     value: Proddatur
+
+:wq!	
+
+
+# To Know environment variable set or not 
+kubectl exec <podname> env
+Kubectl exec <podname> -c coolgourav147/ngix-custom env
+
+# To enter into container
+kubectl exec <podname> -c coolgourav147/ngix-custom -it bash
+
+
+
+# Sleep 
+
+apiVersion: v1
+kind: Pod
+metadata: 
+ name: myfirstpod
+ labels: 
+  env: prod
+spec:
+ containers:
+  -name: create a image
+   image: coolgourav147/ngix-custom
+   env:
+    -name: MyName
+     value: Basha
+    -name: City
+     value: Proddatur
+   args: ["sleep",50]
+
+:wq!
+
+
+# Multiple Containers
+
+apiVersion: v1
+kind: Pod
+metadata: 
+ name: myfirstpod
+ labels: 
+  env: prod
+spec:
+ containers:
+  -name: create a image of first container
+   image: coolgourav147/ngix-custom
+   env:
+    -name: MyName
+     value: Basha
+    -name: City
+     value: Proddatur
+   args: ["sleep",500]
+  -name: create a image of second container
+   image: coolgourav147/ngix-custom
+   env:
+    -name: MyName
+     value: Basha
+    -name: City
+     value: Proddatur
+   args: ["sleep",50]
+
+:wq!
+
+
+apiVersion: v1
+kind: Pod
+metadata: 
+ name: myfirstpod
+ labels: 
+  env: prod
+spec:
+ containers:
+  -name: create a image of first container
+   image: coolgourav147/ngix-custom
+   env:
+    -name: MyName
+     value: Basha
+    -name: City
+     value: Proddatur
+  -name: create a image of second container
+   image: coolgourav147/ngix-custom
+   env:
+    -name: MyName
+     value: Basha
+    -name: City
+     value: Proddatur
+
+:wq!
+
+
+
+
+
+# Init Container
+apiVersion: v1
+kind: Pod
+metadata: 
+ name: myfirstpod
+ labels: 
+  env: prod
+spec:
+ containers:
+  -name: create a image of first container
+   image: coolgourav147/ngix-custom
+   env:
+    -name: MyName
+     value: Basha
+    -name: City
+     value: Proddatur
+   args: ["sleep",500]
+  -name: create a image of second container
+   image: coolgourav147/ngix-custom
+   env:
+    -name: MyName
+     value: Basha
+    -name: City
+     value: Proddatur
+initContainers:
+ -name: create a image of init container
+  image: coolgourav147/ngix-custom
+  env:
+    -name: MyName
+     value: Basha
+    -name: City
+     value: Proddatur
+  args: ["sleep",50]
+
+:wq!
+
+
+
+# Pod Expose using Services 
+
+1) clusterIp
+2) NodePort
+
+
+Kubectl expose pod <podname> --port=8000 --target-port=80 --name=<servicename>
+
+kubectl expose pod <podname> --type=NodePort --port=8000 --target-port=80 --name=<servicename>
+
+
+apiVersion: v1
+kind: Service
+metadata: 
+ name: myservice
+ labels: 
+  env: prod
+spec:
+ type: NodePort
+ ports:
+  -nodePort: 3200
+   port:9000
+   targetPort: 80
+ containers:
+  -name: create a image of first container
+   image: coolgourav147/ngix-custom
+selector:
+ label: matchwithpodlabel
+
+# ReplicationController
+
+apiVersion: v1
+kind: ReplicationController
+metadata: 
+ name: Myfirstrc
+ labels: 
+  env: prod
+spec:
+ replias: 5
+ selector:        
+    myname: Basha                        
+ template:
+  metadata: 
+   name: myservice
+   labels: 
+     myname: Basha
+  spec:
+   containers:
+    -name: create a image of first container
+     image: coolgourav147/ngix-custom
+
+:wq!
+
+# Scaling for replication controller with edit manifest file
+Kubectl scale --replias=8 rc <replicationcontrollername> -l env=prod
+
+
+# If we delete replication controller and it automatically delete pods as well
+kubectl delete rc <replicationcontrollername>
+
+# If we want to delete replication controller but not delete pods using this command
+kubectl delete rc --cascase=false <replicationcontrollername>
+
+
+# Service for Replication controller
+
+apiVersion: v1
+kind: Service
+metadata: 
+ name: myservice
+ labels:  
+  env: prod
+spec:
+ type: NodePort
+ ports:
+  -nodePort: 3200
+   port:9000
+   targetPort: 80
+ containers:
+  -name: create a image of first container
+   image: coolgourav147/ngix-custom
+selector:
+  myname: Basha
+  
+
+:wq!
+
+
+# Kubernetes - ReplicaSet & Diff between Replicaset and Replication Controller
+
+
+# ReplicaSet
+
+apiVersion: v1
+kind: ReplicaSet
+metadata: 
+ name: Myfirstrs
+ labels: 
+  env: prod
+spec:
+ replias: 5
+ selector:        
+    myname: Basha                        
+ template:
+  metadata: 
+   name: myservice
+   labels: 
+     myname: Basha
+  spec:
+   containers:
+    -name: create a image of first container
+     image: coolgourav147/ngix-custom
+
+:wq!
+
+
+# Scaling for replicaset with edit manifest file
+Kubectl scale --replias=8 rs <replicasetname> -l env=prod
+
+
+# If we delete replicaset and it automatically delete pods as well
+kubectl delete rs <replicasetname>
+
+# If we want to delete replicaset but not delete pods using this command
+kubectl delete rs --cascase=false <replicasetname>
+
+
+# Service for ReplicaSet
+
+apiVersion: v1
+kind: Service
+metadata: 
+ name: myservice
+ labels: 
+  env: prod
+spec:
+ type: NodePort
+ ports:
+  -nodePort: 3200
+   port:9000
+   targetPort: 80
+ containers:
+  -name: create a image of first container
+   image: coolgourav147/ngix-custom
+selector:
+  myname: Basha
+  
+
+:wq!
+
+
+
+# Deployment
+
+
+apiVersion: v1
+kind: Deployment
+metadata: 
+ name: Myfirstrs
+ labels: 
+  env: prod
+spec:
+ replias: 5
+ selector:        
+    myname: Basha                        
+ template:
+  metadata: 
+   name: myservice
+   labels: 
+     myname: Basha
+  spec:
+   containers:
+    -name: create a image of first container
+     image: coolgourav147/ngix-custom
+
+:wq!
+
+
+# Important for Deployment
+
+Kubectl rollout
+
+history
+pause
+restart
+resume
+status
+undo
+
+Kubectl rollout status
+
+daemonset
+deployment
+statefulset
+
+
+
+
+# Deployment using strategy
+
+apiVersion: v1
+kind: Deployment
+metadata: 
+ name: Myfirst
+ labels: 
+  env: prod
+spec:
+ replias: 5
+ minReadySeconds: 30
+ strategy:
+  rollingUpdate:
+   maxSurge: 0
+   maxUnavailable: 1
+  type: RollingUpdate
+ selector:        
+    myname: Basha                        
+ template:
+  metadata: 
+   name: myservice
+   labels: 
+     myname: Basha
+  spec:
+   containers:
+    -name: create a image of first container
+     image: coolgourav147/ngix-custom
+
+:wq!
+
+
+# Explain of maxSurge and maxUnavailable
+Another way of understanding these options is: maxSurge is the maximum number of new pods that will be created at a time, and maxUnavailable is the maximum number of old pods that will be deleted at a time. Let’s step through the process for updating a Deployment with 3 replicas from “v1” to “v2” using the following update strategy:
+
+
+# List deployments:
+kubectl get deploy
+
+# Update a deployment with a manifest file:
+kubectl apply -f test.yaml
+
+# Scale a deployment “test” to 3 replicas:
+kubectl scale deploy/test --replicas=3
+
+# Watch update status for deployment “test”:
+kubectl rollout status deploy/test
+
+# Pause deployment on “test”:
+kubectl rollout pause deploy/test
+
+# Resume deployment on “test”:
+kubectl rollout resume deploy/test
+
+# View rollout history on “test”:
+kubectl rollout history deploy/test
+
+# Undo most recent update on “test”:
+kubectl rollout undo deploy/test
+
+# Rollback to specific revision on “test”:
+kubectl rollout undo deploy/test --to-revision=1
+
+
+
+# Set revisionhistory and explaination of revision history
+
+Also the maximum number of revisions in kubernets version "apps/v1" is 10 by default
+
+Example :
+------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-first-deployment
+  labels:
+    app: myapp
+spec:
+    replicas: 5
+    revisionHistoryLimit: 15     
+
+
+
+
+# Deployment using strategy recreate
+
+apiVersion: v1
+kind: Deployment
+metadata: 
+ name: Myfirst
+ labels: 
+  env: prod
+spec:
+ replias: 5
+ minReadySeconds: 30
+ strategy:
+  type: Recreate
+ selector:        
+    myname: Basha                        
+ template:
+  metadata: 
+   name: myservice
+   labels: 
+     myname: Basha
+  spec:
+   containers:
+    -name: create a image of first container
+     image: coolgourav147/ngix-custom
+
+:wq!
+
+
+# Resource Limit--memory
+
+apiVersion: v1
+kind: Pod
+metadata: 
+ name: myfirstpod
+ labels: 
+  env: prod
+spec:
+ containers:
+  -name: create a image
+   image: coolgourav147/ngix-custom
+   resources:
+     requests:
+       memory: 200Mi
+
+
+:wq!
+
+
+# Resource Limit--memory and cpu
+
+apiVersion: v1
+kind: Pod
+metadata: 
+ name: myfirstpod
+ labels: 
+  env: prod
+spec:
+ containers:
+  -name: create a image
+   image: coolgourav147/ngix-custom
+   resources:
+     requests:
+       memory: 200Mi
+       cpu: 100m
+
+:wq!
+
+
+# Limit of pod of containers
+
+apiVersion: v1
+kind: Pod
+metadata: 
+ name: myfirstpod
+ labels: 
+  env: prod
+spec:
+ containers:
+  -name: create a image
+   image: coolgourav147/ngix-custom
+   resources:
+     requests:
+       memory: 200Mi
+       cpu: 100m
+     limits:
+       memory: 200Mi
+       cpu: 500m
+:wq!
+
+# Namespace of Kubernetes
+ 
+# Create a namespace
+kubectl create namespaces <namespacename>
+
+# How to Create a pod under a specific namespace
+kubectl apply -f pod.yml  --namespaces <namespacename>
+
+#
+kubectl get --all
+kubectl get pods --all
+kubectl get pods --all-namespaces
+kubectl get pods -n <namespaces>
+
+#To delete pod under specific namespace
+kubectl delete pod <podname> -n <namespacename>
+
+
+apiVersion: v1
+kind: Pod
+metadata: 
+ name: myfirstpod
+ namespace: <namespacename>
+ labels: 
+  env: prod
+spec:
+ containers:
+  -name: create a image
+   image: coolgourav147/ngix-custom
+   resources:
+     requests:
+       memory: 200Mi
+       cpu: 100m
+     limits:
+       memory: 200Mi
+       cpu: 500m
+:wq!
+
+# Set namespaces
+kubectl config set-context --curent --namespace=test 
+
+
+# ResourceQuota object based quota
+
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+ name: myquota
+spec:
+ hard:
+  pods: 2
+  
+
+:wq!
+
+
+# ResourceQuota for memory based quota for namsespace
+
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+ name: myquota
+spec:
+ hard:
+  requests.cpu: 0.5
+  requests.memory: 500Mi
+  limits.cpu: 1
+  limits.memory: 1Gi
+
+
+ :wq!
+
+# LimitRange---->Default Limit, Default Request, Max, Min
+
+apiVersion: v1
+kind: LimitRange
+metadata:
+ name: myquota
+spec:
+ limits:
+ - defaultLimit:
+     cpu: 200m
+     memory: 500m
+   defaultRequest:
+     cpu: 100m
+     memory: 250m
+   max:
+     cpu: 700m
+     memory: 700Mi
+   min:
+     cpu: 80m
+     memory: 250Mi
+   type: Container
+
+
+# Limit Range ------>Max Limit/request ratio
+
+apiVersion: v1
+kind: LimitRange
+metadata:
+ name: myquota
+spec:
+ limits:
+  -maxLimitRequestRatio:
+    memory: 2
+   type: Container
+
+:wq!
+
+
+
+
+
+
+
+
+
+
